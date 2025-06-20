@@ -6,3 +6,5 @@ plotly
 dash
 dash-bootstrap-components
 numpy
+geopandas
+fiona
