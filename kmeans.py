@@ -7,6 +7,7 @@ from sklearn.decomposition import PCA
 import plotly.express as px
 from sklearn.metrics import silhouette_score
 import numpy as np
+import plotly.graph_objects as go
 import os
 
 # Fichiers à utiliser
