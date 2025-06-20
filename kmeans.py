@@ -246,6 +246,13 @@ app.layout = dbc.Container([
         id='scatter-graph',
         figure=fig,
         style={"height": "700px", "marginTop": 30}
+    ),
+    html.Hr(),
+    html.H3("Carte des circonscriptions par cluster", style={"marginTop": 30}),
+    dcc.Graph(
+        id='map-graph',
+        figure={},
+        style={"height": "700px", "marginTop": 10}
     )
 ], fluid=True)
 
@@ -282,7 +289,80 @@ def update_proches(selected_idx):
         style_table={"marginTop": 20, "marginBottom": 20, "width": "80%", "marginLeft": "auto", "marginRight": "auto"}
     )
 
-if __name__ == "__main__":    
+try:
+    import geopandas as gpd
+    # Charger le GeoJSON des circonscriptions législatives françaises
+    circo_gdf = gpd.read_file('circonscriptions-legislatives-p10.geojson')
+    # Harmoniser les codes pour la jointure (toujours 2 caractères pour circo, 2 ou 3 pour département)
+    circo_gdf['Code du département'] = circo_gdf['codeDepartement'].astype(str).str.lower().str.zfill(2)
+    circo_gdf['Code de la circonscription'] = circo_gdf['codeCirconscription'].astype(str).str.zfill(2)
+    circo_gdf['id_circo'] = circo_gdf['Code du département'] + '-' + circo_gdf['Code de la circonscription']
+    pivot['Code du département'] = pivot['Code du département'].astype(str).str.lower().str.zfill(2)
+    pivot['Code de la circonscription'] = pivot['Code de la circonscription'].astype(str).str.zfill(2)
+    # Correction du mapping : id_circo = dep.zfill(2) + '-' + dep.zfill(2) + circo.zfill(2)
+    pivot['id_circo'] = pivot['Code du département'].str.zfill(2) + '-' + pivot['Code du département'].str.zfill(2) + pivot['Code de la circonscription'].str.zfill(2)
+    # Conversion du GeoDataFrame en GeoJSON dict et ajout du champ 'id' pour chaque feature
+    geojson = circo_gdf.__geo_interface__
+    for i, feature in enumerate(geojson['features']):
+        feature['id'] = circo_gdf.iloc[i]['id_circo']
+    # Vérification du mapping : combien d'id_circo du pivot sont dans le geojson ?
+    ids_geojson = set(circo_gdf['id_circo'])
+    ids_pivot = set(pivot['id_circo'])
+    # DEBUG : Afficher quelques id_circo du pivot et du geojson
+    print('Exemples id_circo pivot:', list(pivot['id_circo'].unique())[:10])
+    print('Exemples id_circo geojson:', list(circo_gdf['id_circo'].unique())[:10])
+    print('Clusters uniques:', pivot['cluster'].unique())
+    print('Correspondances trouvées :', len(ids_pivot & ids_geojson), '/', len(ids_pivot))
+    # Palette de couleurs pour clusters
+    cluster_palette = px.colors.qualitative.Plotly[:pivot['cluster'].nunique()]
+    # Affichage carte : chaque circo colorée par cluster
+    map_fig = px.choropleth_mapbox(
+        pivot,
+        geojson=geojson,
+        locations='id_circo',
+        color='cluster',
+        color_continuous_scale=None,
+        color_discrete_sequence=cluster_palette,
+        hover_name='circo_label',
+        hover_data={'Code du département': True, 'Code de la circonscription': True, 'departmentName': True, 'regionName': True},
+        mapbox_style='carto-positron',
+        zoom=4.5,
+        center={"lat": 46.6, "lon": 2.5},
+        opacity=0.7,
+        title="Carte des circonscriptions colorées par cluster (surface)"
+    )
+    map_fig.update_layout(margin={"r":0,"t":40,"l":0,"b":0})
+except ImportError:
+    map_fig = go.Figure()
+    map_fig.update_layout(title="Impossible d'afficher la carte : geopandas non installé")
+except Exception as e:
+    map_fig = go.Figure()
+    map_fig.update_layout(title=f"Erreur lors de l'affichage de la carte : {e}")
+
+# Ajout de la carte à l'interface Dash
+app.layout = dbc.Container([
+    html.H2("Recherche de circonscriptions proches", style={"marginTop": 30}),
+    dcc.Dropdown(
+        id='circo-dropdown',
+        options=[{'label': str(c), 'value': str(i)} for i, c in enumerate(pivot['circo_search'])],
+        placeholder="Choisissez une circonscription...",
+        style={"width": "100%", "marginBottom": 20}
+    ),
+    html.Div(id='proches-output'),
+    dcc.Graph(
+        id='scatter-graph',
+        figure=fig,
+        style={"height": "700px", "marginTop": 30}
+    ),
+    html.Hr(),
+    html.H3("Carte des circonscriptions par cluster", style={"marginTop": 30}),
+    dcc.Graph(
+        id='map-graph',
+        figure=map_fig,
+        style={"height": "700px", "marginTop": 10}
+    )
+], fluid=True)
+
+if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port, debug=False)
-
