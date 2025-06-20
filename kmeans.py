@@ -10,6 +10,7 @@ import numpy as np
 import plotly.graph_objects as go
 import os
 
+
 # Fichiers à utiliser
 files = [
     'leg_2017.csv',
