@@ -10,9 +10,9 @@ import numpy as np
 
 # Fichiers à utiliser
 files = [
-    'data_a_utiliser/leg_2017.csv',
-    'data_a_utiliser/leg_2022.csv',
-    'data_a_utiliser/leg_2024.csv'
+    'leg_2017.csv',
+    'leg_2022.csv',
+    'leg_2024.csv'
 ]
 
 # Chargement et concaténation des données
@@ -118,7 +118,7 @@ fig.update_traces(marker=dict(size=18, opacity=0.95, line=dict(width=1, color='b
 
 # Ajout des infos département et région pour le hover Plotly
 # Chargement du fichier de correspondance
-regions = pd.read_csv('data_a_utiliser/departments_regions_france_2016.csv', dtype=str)
+regions = pd.read_csv('departments_regions_france_2016.csv', dtype=str)
 regions['departmentCode'] = regions['departmentCode'].str.lower()
 regions['departmentName'] = regions['departmentName'].str.strip()
 regions['regionName'] = regions['regionName'].str.strip()
