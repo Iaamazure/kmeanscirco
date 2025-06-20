@@ -6,4 +6,3 @@ plotly
 dash
 dash-bootstrap-components
 numpy
-os
