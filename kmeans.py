@@ -7,6 +7,7 @@ from sklearn.decomposition import PCA
 import plotly.express as px
 from sklearn.metrics import silhouette_score
 import numpy as np
+import os
 
 # Fichiers à utiliser
 files = [
@@ -281,5 +282,7 @@ def update_proches(selected_idx):
         style_table={"marginTop": 20, "marginBottom": 20, "width": "80%", "marginLeft": "auto", "marginRight": "auto"}
     )
 
-if __name__ == "__main__":
-    app.run(debug=True)
+if __name__ == "__main__":    
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port, debug=False)
+
