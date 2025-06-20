@@ -14,9 +14,9 @@ from dash import dcc, html, Input, Output, State, dash_table
 import dash_bootstrap_components as dbc
 
 files = [
-    'data_a_utiliser/leg_2017.csv',
-    'data_a_utiliser/leg_2022.csv',
-    'data_a_utiliser/leg_2024.csv'
+    'leg_2017.csv',
+    'leg_2022.csv',
+    'leg_2024.csv'
 ]
 frames = []
 for f in files:
@@ -78,7 +78,7 @@ fig = px.scatter(
     labels={'PCA1': 'Principal component 1', 'PCA2': 'Principal component 2'}
 )
 fig.update_traces(marker=dict(size=18, opacity=0.95, line=dict(width=1, color='black')))
-regions = pd.read_csv('data_a_utiliser/departments_regions_france_2016.csv', dtype=str)
+regions = pd.read_csv('departments_regions_france_2016.csv', dtype=str)
 regions['departmentCode'] = regions['departmentCode'].str.lower()
 regions['departmentName'] = regions['departmentName'].str.strip()
 regions['regionName'] = regions['regionName'].str.strip()
@@ -245,7 +245,7 @@ def update_proches(selected_idx):
     )
 try:
     import geopandas as gpd
-    circo_gdf = gpd.read_file('data_a_utiliser/circonscriptions-legislatives-p10.geojson')
+    circo_gdf = gpd.read_file('circonscriptions-legislatives-p10.geojson')
     circo_gdf['Code du département'] = circo_gdf['codeDepartement'].astype(str).str.lower().str.zfill(2)
     circo_gdf['Code de la circonscription'] = circo_gdf['codeCirconscription'].astype(str).str.lower().str.zfill(2)
     circo_gdf['id_circo'] = circo_gdf['Code du département'] + '-' + circo_gdf['Code de la circonscription']
